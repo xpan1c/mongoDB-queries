@@ -33,6 +33,14 @@ Run the following command at the project root:
 
 ```bash
 
-docker compose exec mongodb mongosh -u rootuser -p rootpass --authenticationDatabase admin mydb queries.js
+docker compose exec mongo mongosh -u root -p example --authenticationDatabase admin mydb queries.js
 ```
 This solution will execute the queries and display the results in the console.
+
+## Additional Resources
+
+For more information on seeding MongoDB with Docker Compose, refer to this blog post:
+
+[Seeding MongoDB using Docker Compose](https://shantanoo-desai.github.io/posts/technology/seeding-mongodb-docker-compose/)
+
+[AmigosCode MongoDB course](https://amigoscode.com/courses/enrolled/1411080)

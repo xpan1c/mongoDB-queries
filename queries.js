@@ -1,10 +1,69 @@
-const username = 'rootuser';
-const password = 'rootpass';
+const username = 'root';
+const password = 'example';
 
 conn = new Mongo(`mongodb://${username}:${password}@localhost:27017/admin`);
 mydb = conn.getDB('mydb');
 //Consultas
-print("Muestra todos los restaurantes")
+print("Mostrar todos los documentos en la colección Restaurantes");
 printjson(db.restaurantes.find())
-printjson(db.restaurantes.find({},{restaurant_id: 1, name: 1, borough: 1, cuisine: 1}))
-printjson(db.restaurantes.find({},{restaurant_id: 1, name: 1, borough: 1, cuisine: 1, _id:0}))
+print("Mostrar restaurant_id, name, borough y cuisine de todos los documentos en la colección Restaurantes");
+printjson(db.restaurantes.find({},{restaurant_id: 1, name: 1, borough: 1, cuisine: 1}));
+print("Mostrar restaurant_id, name, borough y cuisine, excluyendo el campo _id para todos los documentos en la colección Restaurantes");
+printjson(db.restaurantes.find({},{restaurant_id: 1, name: 1, borough: 1, cuisine: 1, _id:0}));
+print("Mostrar restaurant_id, name, borough y zip code, excluyendo el campo _id para todos los documentos en la colección Restaurantes");
+printjson(db.restaurantes.find({}, {"restaurant_id": 1, "name": 1, "borough": 1, "address.zipcode": 1, "_id": 0}));
+print("Mostrar todos los restaurantes en el Bronx");
+printjson(db.restaurantes.find({"borough": "Bronx"}));
+print("Mostrar los primeros 5 restaurantes en el Bronx");
+printjson(db.restaurantes.find({"borough": "Bronx"}).limit(5));
+print("Mostrar los 5 restaurantes después de saltar los primeros 5 en el Bronx");
+print("Encontrar restaurantes con algún score mayor a 90");
+printjson(db.restaurantes.find({"grades.score": {"$gt": 90}}));
+print("Encontrar restaurantes con score mayor a 80 pero menor a 100");
+printjson(db.restaurantes.find({"grades.score": {"$gt": 80, "$lt": 100}}));
+print("Encontrar restaurantes con longitud inferior a -95.754168");
+printjson(db.restaurantes.find({"address.coord.0": {"$lt": -95.754168}}));
+print("Encontrar restaurantes que no cocinen comida 'American' y tengan un score superior a 70 y longitud inferior a -65.754168");
+printjson(db.restaurantes.find({"$and": [{"cuisine": {"$ne": "American "}}, {"grades.score": {"$gt": 70}}, {"address.coord.0": {"$lt": -65.754168}}]}))
+print("Encontrar restaurantes que no cocinen comida 'American', tengan algún score superior a 70 y estén ubicados en longitudes inferiores a -65.754168 sin utilizar el operador $and");
+printjson(db.restaurantes.find({"cuisine": {"$ne": "American "}, "grades.score": {"$gt": 70}, "address.coord.0": {"$lt": -65.754168}}))
+print("Encontrar restaurantes que no cocinen comida 'American', tengan una calificación 'A' y no pertenezcan a Brooklyn, ordenados por cuisine de forma descendente");
+printjson(db.restaurantes.find({"cuisine": {"$ne": "American "}, "grades.grade": "A", "borough": {"$ne": "Brooklyn"}}).sort({"cuisine": -1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que contengan 'Wil' en las primeras tres letras de su nombre");
+printjson(db.restaurantes.find({"name": {"$regex": /^Wil/i}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que contengan 'ces' en las últimas tres letras de su nombre");
+printjson(db.restaurantes.find({"name": {"$regex": /ces$/i}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que contengan 'Reg' en cualquier parte de su nombre");
+printjson(db.restaurantes.find({"name": {"$regex": /Reg/i}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurantes del Bronx que preparen platos Americanos o Chinos");
+printjson(db.restaurantes.find({"borough": "Bronx", "cuisine": {"$in": ["American ", "Chinese"]}}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que pertenezcan a Staten Island, Queens, Bronx o Brooklyn");
+printjson(db.restaurantes.find({"borough": {"$in": ["Staten Island", "Queens", "Bronx", "Brooklyn"]}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que NO pertenezcan a Staten Island, Queens, Bronx o Brooklyn");
+printjson(db.restaurantes.find({"borough": {"$nin": ["Staten Island", "Queens", "Bronx", "Brooklyn"]}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que obtengan una calificación menor a 10");
+printjson(db.restaurantes.find({"grades.score": {"$lt": 10}}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name, borough y cuisine de aquellos restaurantes que preparen mariscos ('seafood') excepto si son 'American', 'Chinese' o el nombre del restaurante comienza con las letras 'Wil'");
+printjson(db.restaurantes.find({"cuisine": "Seafood", "$or": [{"cuisine": {"$nin": ["American ", "Chinese"]}}, {"name": {"$not": {"$regex": /^Wil/i}}}]}, {"restaurant_id": 1, "name": 1, "borough": 1, "cuisine": 1}));
+print("Encontrar restaurant_id, name y grades de aquellos restaurantes que obtengan un grade de 'A' y un score de 11 con un ISODate '2014-08-11T00:00:00Z'");
+printjson(db.restaurantes.find({"grades": {"$elemMatch": {"grade": "A", "score": 11, "date": {"$eq": ISODate('2014-08-11T00:00:00Z')}}}}, {"restaurant_id": 1, "name": 1, "grades": 1}));
+print("Encontrar restaurant_id, name y grades de aquellos restaurantes donde el segundo elemento del array de grados contenga un grade de 'A' y un score 9 con un ISODate '2014-08-11T00:00:00Z'");
+printjson(db.restaurantes.find({"grades.1": {"$exists": true}, "grades.1.grade": "A", "grades.1.score": 9, "grades.1.date": {"$eq": ISODate('2014-08-11T00:00:00Z')}}, {"restaurant_id": 1, "name": 1, "grades": 1}));
+print("Encontrar restaurant_id, name, dirección y ubicación geográfica de aquellos restaurantes donde el segundo elemento del array coord contenga un valor entre 42 y 52");
+printjson(db.restaurantes.find({"address.coord.1": {"$gt": 42, "$lt": 52}}, {"restaurant_id": 1, "name": 1, "address": 1}));
+print("Ordenar los restaurantes por nombre en orden ascendente");
+printjson(db.restaurantes.find().sort({"name": 1}));
+print("Ordenar los restaurantes por nombre en orden descendente");
+printjson(db.restaurantes.find().sort({"name": -1}));
+print("Ordenar los restaurantes por nombre de la cuisine en orden ascendente y por borough en orden descendente");
+printjson(db.restaurantes.find().sort({"cuisine": 1, "borough": -1}));
+print("Encontrar si las direcciones contienen la calle");
+printjson(db.restaurantes.find({"address.street": {"$regex": /Street/i}}));
+print("Seleccionar todos los documentos en la colección de restaurantes donde los valores del campo coord sean de tipo Double");
+printjson(db.restaurantes.find({"address.coord": {"$type": "double"}}));
+print("Seleccionar restaurant_id, name y grade para aquellos restaurantes que devuelvan 0 como residuo después de dividir alguno de sus scores por 7");
+printjson(db.restaurantes.find({"grades.score": {"$mod": [7, 0]}}, {"restaurant_id": 1, "name": 1, "grades": 1}));
+print("Encontrar el nombre del restaurante, borough, longitud, latitud y cocina para aquellos restaurantes que contengan 'mon' en algún lugar de su nombre");
+printjson(db.restaurantes.find({"name": {"$regex": /mon/i}}, {"name": 1, "borough": 1, "address.coord": 1, "cuisine": 1}));
+print("Encontrar el nombre del restaurante, borough, longitud, latitud y cocina para aquellos restaurantes que contengan 'Mad' como las primeras tres letras de su nombre");
+printjson(db.restaurantes.find({"name": {"$regex": /^Mad/i}}, {"name": 1, "borough": 1, "address.coord": 1, "cuisine": 1}));
